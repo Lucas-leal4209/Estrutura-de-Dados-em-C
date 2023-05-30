@@ -1,0 +1,573 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_SIZE 100
+
+typedef struct {
+  int data[MAX_SIZE];
+  int top;
+} Stack;
+
+void iniciarPilha(Stack *stack) { stack->top = -1; }
+
+int pilhaVazia(Stack *stack) { return stack->top == -1; }
+
+int pilhaCheia(Stack *stack) { return stack->top == MAX_SIZE - 1; }
+
+void push(Stack *stack, int valor) {
+  if (pilhaCheia(stack)) {
+    printf("Erro: Pilha cheia\n");
+    return;
+  }
+
+  stack->data[++stack->top] = valor;
+}
+
+int pop(Stack *stack) {
+  if (pilhaVazia(stack)) {
+    printf("Erro: Pilha vazia\n");
+    return -1;
+  }
+
+  return stack->data[stack->top--];
+}
+
+void imprimirPilha(Stack *stack) {
+  if (pilhaVazia(stack)) {
+    printf("A pilha está vazia\n");
+    return;
+  }
+
+  printf("Conteúdo da pilha:\n");
+  for (int i = stack->top; i >= 0; i--) {
+    printf("%d\n", stack->data[i]);
+  }
+}
+
+void limparPilha(Stack *stack) { stack->top = -1; }
+
+int top(Stack *stack) {
+  if (pilhaVazia(stack)) {
+    printf("Erro: Pilha vazia\n");
+    return -1;
+  }
+
+  return stack->data[stack->top];
+}
+
+/////////////////////////////////////////////
+
+typedef struct {
+  int data[MAX_SIZE];
+  int front;
+  int rear;
+  int size;
+} Queue;
+
+void iniciarFila(Queue *queue) {
+  queue->front = -1;
+  queue->rear = -1;
+  queue->size = 0;
+}
+
+int filaVazia(Queue *queue) { return queue->size == 0; }
+
+int filaCheia(Queue *queue) { return queue->size == MAX_SIZE; }
+
+void enqueue(Queue *queue, int valor) {
+  if (filaCheia(queue)) {
+    printf("Erro: Fila cheia\n");
+    return;
+  }
+
+  if (filaVazia(queue)) {
+    queue->front = 0;
+    queue->rear = 0;
+  } else {
+    queue->rear = (queue->rear + 1) % MAX_SIZE;
+  }
+
+  queue->data[queue->rear] = valor;
+  queue->size++;
+}
+
+int dequeue(Queue *queue) {
+  if (filaVazia(queue)) {
+    printf("Erro: Fila vazia\n");
+    return -1; // Valor inválido
+  }
+
+  int valor = queue->data[queue->front];
+  queue->front = (queue->front + 1) % MAX_SIZE;
+  queue->size--;
+
+  if (filaVazia(queue)) {
+    queue->front = -1;
+    queue->rear = -1;
+  }
+
+  return valor;
+}
+
+void imprimirFila(Queue *queue) {
+  if (filaVazia(queue)) {
+    printf("A fila está vazia\n");
+    return;
+  }
+
+  printf("Conteúdo da fila:\n");
+  int i = queue->front;
+  int count = 0;
+  while (count < queue->size) {
+    printf("%d\n", queue->data[i]);
+    i = (i + 1) % MAX_SIZE;
+    count++;
+  }
+}
+
+void limparFila(Queue *queue) {
+  queue->front = -1;
+  queue->rear = -1;
+  queue->size = 0;
+}
+
+int maiorValor(Queue *queue) {
+  if (filaVazia(queue)) {
+    printf("Erro: Fila vazia\n");
+    return -1; // Valor inválido
+  }
+
+  int max = queue->data[queue->front];
+  int i = queue->front;
+  int count = 0;
+  while (count < queue->size) {
+    if (queue->data[i] > max) {
+      max = queue->data[i];
+    }
+    i = (i + 1) % MAX_SIZE;
+    count++;
+  }
+
+  return max;
+}
+
+int menorValor(Queue *queue) {
+  if (filaVazia(queue)) {
+    printf("Erro: Fila vazia\n");
+    return -1; // Valor inválido
+  }
+
+  int min = queue->data[queue->front];
+  int i = queue->front;
+  int count = 0;
+  while (count < queue->size) {
+    if (queue->data[i] < min) {
+      min = queue->data[i];
+    }
+    i = (i + 1) % MAX_SIZE;
+    count++;
+  }
+
+  return min;
+}
+
+/////////////////////////////////////////////
+
+typedef struct No {
+  int data;
+  struct No *left;
+  struct No *right;
+} No;
+
+typedef struct {
+  No *data;
+  struct FilaDeNos *prox;
+} FilaDeNos;
+
+typedef struct {
+  FilaDeNos *front;
+  FilaDeNos *rear;
+} Fila;
+
+void iniciarArvore(Fila *queue) {
+  queue->front = NULL;
+  queue->rear = NULL;
+}
+
+int noVazio(Fila *queue) { return queue->front == NULL; }
+
+void enfileirar(Fila *queue, No *valor) {
+  FilaDeNos *newNode = (FilaDeNos *)malloc(sizeof(FilaDeNos));
+  newNode->data = valor;
+  newNode->prox = NULL;
+
+  if (noVazio(queue)) {
+    queue->front = newNode;
+    queue->rear = newNode;
+  } else {
+    queue->rear->prox = newNode;
+    queue->rear = newNode;
+  }
+}
+
+No *Dequeue(Fila *queue) {
+  if (noVazio(queue)) {
+    return NULL;
+  }
+
+  FilaDeNos *temp = queue->front;
+  No *valor = temp->data;
+
+  if (queue->front == queue->rear) {
+    queue->front = NULL;
+    queue->rear = NULL;
+  } else {
+    queue->front = queue->front->prox;
+  }
+
+  free(temp);
+  return valor;
+}
+
+void inserirNo(No **root, int valor) {
+  No *newNode = (No *)malloc(sizeof(No));
+  newNode->data = valor;
+  newNode->left = NULL;
+  newNode->right = NULL;
+
+  if (*root == NULL) {
+    *root = newNode;
+  } else {
+    Fila queue;
+    iniciarArvore(&queue);
+    enfileirar(&queue, *root);
+
+    while (!noVazio(&queue)) {
+      No *current = Dequeue(&queue);
+
+      if (current->left != NULL) {
+        enfileirar(&queue, current->left);
+      } else {
+        current->left = newNode;
+        break;
+      }
+
+      if (current->right != NULL) {
+        enfileirar(&queue, current->right);
+      } else {
+        current->right = newNode;
+        break;
+      }
+    }
+  }
+}
+
+int buscarNo(No *root, int valor) {
+  if (root == NULL) {
+    return 0;
+  }
+
+  Fila queue;
+  iniciarArvore(&queue);
+  enfileirar(&queue, root);
+
+  while (!noVazio(&queue)) {
+    No *current = Dequeue(&queue);
+
+    if (current->data == valor) {
+      return 1;
+    }
+
+    if (current->left != NULL) {
+      enfileirar(&queue, current->left);
+    }
+
+    if (current->right != NULL) {
+      enfileirar(&queue, current->right);
+    }
+  }
+
+  return 0;
+}
+
+No *removerNo(No *root, int valor) {
+  if (root == NULL) {
+    return NULL;
+  }
+
+  if (root->left == NULL && root->right == NULL) {
+    if (root->data == valor) {
+      free(root);
+      return NULL;
+    } else {
+      return root;
+    }
+  }
+
+  Fila queue;
+  iniciarArvore(&queue);
+  enfileirar(&queue, root);
+
+  No *valorNode = NULL;
+  No *parent = NULL;
+
+  while (!noVazio(&queue)) {
+    parent = dequeue(&queue);
+
+    if (parent->data == valor) {
+      valorNode = parent;
+    }
+
+    if (parent->left != NULL) {
+      enfileirar(&queue, parent->left);
+
+      if (parent->left->data == valor) {
+        valorNode = parent->left;
+        parent->left = NULL;
+      }
+    }
+
+    if (parent->right != NULL) {
+      enfileirar(&queue, parent->right);
+
+      if (parent->right->data == valor) {
+        valorNode = parent->right;
+        parent->right = NULL;
+      }
+    }
+  }
+
+  if (valorNode != NULL) {
+    valorNode->data = parent->data;
+    free(parent);
+  }
+
+  return root;
+}
+
+void imprimirDireitaEsquerda(No *root) {
+  if (root == NULL) {
+    return;
+  }
+
+  imprimirDireitaEsquerda(root->right);
+  printf("%d ", root->data);
+  imprimirDireitaEsquerda(root->left);
+}
+
+void imprimirArvore(No *root) {
+  if (root == NULL) {
+    return;
+  }
+
+  Fila queue;
+  iniciarArvore(&queue);
+  enfileirar(&queue, root);
+
+  printf("Elementos da árvore (BFS): ");
+  while (!noVazio(&queue)) {
+    No *current = Dequeue(&queue);
+    printf("%d ", current->data);
+
+    if (current->left != NULL) {
+      enfileirar(&queue, current->left);
+    }
+
+    if (current->right != NULL) {
+      enfileirar(&queue, current->right);
+    }
+  }
+
+  printf("\n");
+}
+
+int maiorValorNo(No *root) {
+  if (root == NULL) {
+    return -1;
+  }
+
+  int max = root->data;
+  int leftMax = maiorValorNo(root->left);
+  int rightMax = maiorValorNo(root->right);
+
+  if (leftMax > max) {
+    max = leftMax;
+  }
+
+  if (rightMax > max) {
+    max = rightMax;
+  }
+
+  return max;
+}
+
+
+
+
+
+/////////////////////////////////////////////
+int main() {
+  Stack stack;
+  iniciarPilha(&stack);
+
+  Queue queue;
+  iniciarFila(&queue);
+
+  No *root = NULL;
+
+  int menu, escolha, valor;
+
+  printf("Menu de Estruturas:\n1.Pilha\n2.Fila\n3.Árvore\nOpção: ");
+  scanf("%d", &menu);
+  switch (menu) {
+  case 1:
+    do {
+      printf(
+          "\nEscolha uma opção:\n1.Empilhar\n2.Desempilhar\n3.Imprimir "
+          "pilha\n4.Limpar pilha\n5.Imprimir topo da pilha\n0.Sair\nOpção: ");
+      scanf("%d", &escolha);
+
+      switch (escolha) {
+      case 0:
+        printf("Encerrando o programa.\n");
+        break;
+      case 1:
+        printf("Digite o valor a ser empilhado: ");
+        scanf("%d", &valor);
+        push(&stack, valor);
+        printf("Valor %d empilhado.\n", valor);
+        break;
+      case 2:
+        valor = pop(&stack);
+        if (valor != -1) {
+          printf("Valor %d desempilhado.\n", valor);
+        }
+        break;
+      case 3:
+        imprimirPilha(&stack);
+        break;
+      case 4:
+        limparPilha(&stack);
+        printf("A pilha foi limpa.\n");
+        break;
+      case 5:
+        valor = top(&stack);
+        if (valor != -1) {
+          printf("Topo da pilha: %d\n", valor);
+        }
+        break;
+      default:
+        printf("Opção inválida. Tente novamente.\n");
+      }
+    } while (escolha != 0);
+    break;
+
+  case 2:
+    do {
+      printf("\nEscolha uma opção:\n1.Enqueue\n2.Dequeue\n3.Imprimir "
+             "fila\n4.Limpar fila\n5.Maior elemento da fila\n6.Menor elemento "
+             "da fila\n0.Sair\nOpção: ");
+      scanf("%d", &escolha);
+
+      switch (escolha) {
+      case 0:
+        printf("Encerrando o programa.\n");
+        break;
+      case 1:
+        printf("Digite o valor a ser enfileirado: ");
+        scanf("%d", &valor);
+        enqueue(&queue, valor);
+        printf("Valor %d enfileirado.\n", valor);
+        break;
+      case 2:
+        valor = dequeue(&queue);
+        if (valor != -1) {
+          printf("Valor %d desenfileirado.\n", valor);
+        }
+        break;
+      case 3:
+        imprimirFila(&queue);
+        break;
+      case 4:
+        limparFila(&queue);
+        printf("A fila foi limpa.\n");
+        break;
+      case 5:
+        valor = maiorValor(&queue);
+        if (valor != -1) {
+          printf("Maior elemento da fila: %d\n", valor);
+        }
+        break;
+      case 6:
+        valor = menorValor(&queue);
+        if (valor != -1) {
+          printf("Menor elemento da fila: %d\n", valor);
+        }
+        break;
+      default:
+        printf("Opção inválida. Tente novamente.\n");
+      }
+
+    } while (escolha != 0);
+    break;
+
+  case 3:
+    
+
+  do {
+    printf("Escolha uma opção:\n1. Inserir nó\n2. Buscar elemento\n3. Remover nó\n4. Imprimir elementos da sub-árvore a direita primeiro\n5. Imprimir raiz e depois a sub-árvore a esquerda\n6. Recursiva: Retornar o maior elemento\n0. Sair\n\nOpção: ");
+    scanf("%d", &escolha);
+
+    switch (escolha) {
+      case 0:
+        printf("Encerrando o programa.\n");
+        return 0;
+      case 1:
+        printf("Digite o valor a ser inserido: ");
+        scanf("%d", &valor);
+        inserirNo(&root, valor);
+        printf("Valor %d inserido na árvore.\n", valor);
+        break;
+      case 2:
+        printf("Digite o valor a ser buscado: ");
+        scanf("%d", &valor);
+        if (buscarNo(root, valor)) {
+          printf("O valor %d foi encontrado na árvore.\n", valor);
+        } else {
+          printf("O valor %d não foi encontrado na árvore.\n", valor);
+        }
+        break;
+      case 3:
+        printf("Digite o valor a ser removido: ");
+        scanf("%d", &valor);
+        root = removerNo(root, valor);
+        printf("Valor %d removido da árvore.\n", valor);
+        break;
+      case 4:
+        printf("Elementos da sub-árvore a direita primeiro: ");
+        imprimirDireitaEsquerda(root);
+        printf("\n");
+        break;
+      case 5:
+        printf("Elementos da árvore (raiz, sub-árvore a esquerda): ");
+        imprimirArvore(root);
+        break;
+      case 6:
+        valor = maiorValorNo(root);
+        if (valor != -1) {
+          printf("Maior elemento da árvore: %d\n", valor);
+        }
+        break;
+      default:
+        printf("Opção inválida. Tente novamente.\n");
+    }
+  } while (escolha != 0);
+
+    break;
+
+  default:
+    printf("Opção inválida. Tente novamente.\n");
+    break;
+  }
+  return 0;
+}
